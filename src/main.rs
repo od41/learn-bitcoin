@@ -15,13 +15,13 @@ fn main() {
 
     let mul = a.mul(&b);
     let exp = a.exp(3);
-    let div = a.div(&b);
+    // let div = a.div(&b);
 
     println!("a + b {} ", c.to_string()); // finite field addition
     println!("a - b {} ", d.to_string()); // finite field subtraction
 
     println!("a * b {} ", mul.to_string()); // finite field multiplication
     println!("a ^ 3 {} ", exp.to_string()); // finite field exponents
-    println!("a / b {} ", div.to_string()); // finite field exponents
+    // println!("a / b {} ", div.to_string()); // finite field exponents
 
 }
