@@ -22,11 +22,21 @@ impl Point {
     }
 
     pub fn eq(&self, other: &Point) -> bool {
-        self.x == other.x && self.y == other.y && self.a == other.a && self.b == other.b
+        let x1 = self.x.unwrap();
+        let y1 = self.y.unwrap();
+        let x2 = other.x.unwrap();
+        let y2 = other.y.unwrap();
+
+        x1 == x2 && y1 == y2 && self.a == other.a && self.b == other.b
     }
 
     pub fn ne(&self, other: &Point) -> bool {
-        self.x != other.x || self.y != other.y || self.a != other.a || self.b != other.b
+        let x1 = self.x.unwrap();
+        let y1 = self.y.unwrap();
+        let x2 = other.x.unwrap();
+        let y2 = other.y.unwrap();
+
+        x1 != x2 || y1 != y2 || self.a != other.a || self.b != other.b
     }
 
     pub fn add(&self, other: &Point) -> Point {
@@ -35,6 +45,7 @@ impl Point {
         }
 
         if self.x == None || self.y == None {
+            // return other
             Point{
                 x: other.x,
                 y: other.y,
@@ -42,13 +53,57 @@ impl Point {
                 b: other.b
             }
         } else if other.x == None || other.y == None {
+            // return self
             Point{
                 x: self.x,
                 y: self.y,
                 a: self.a,
                 b: self.b
             }
-        } else  {
+        } else if self.x == other.x && self.y !=  other.y {
+            // returns a point at infinity... right?
+            Point{
+                x: None,
+                y: None,
+                a: self.a,
+                b: self.b
+            }
+        } else if self.x != other.x {
+            let x1 = self.x.unwrap();
+            let y1 = self.y.unwrap();
+            let x2 = other.x.unwrap();
+            let y2 = other.y.unwrap();
+
+            let slope = (y2 - y1) / (x2 - x1);
+
+            let x3 = slope.pow(2) - x1 - x2;
+            let y3 = (slope * (x1 - x3)) - y1;
+
+            Point{
+                x: Some(x3),
+                y: Some(y3),
+                a: self.a,
+                b: self.b
+            }
+        } else if self.x == other.x && self.y == other.y {
+            // they are at the same point and you calculate 
+            // the slope of the tangent to that point
+            let x = self.x.unwrap();
+            let y = self.y.unwrap();
+
+            let slope = (3*x.pow(2) + self.a) / (2 * y);
+
+            let x3 = slope.pow(2) - (2 * x);
+            let y3 = (slope * (x - x3)) - y;
+
+
+            Point{
+                x: Some(x3),
+                y: Some(y3),
+                a: self.a,
+                b: self.b
+            }
+        } else {
             Point{
                 x: self.x,
                 y: self.y,
@@ -66,12 +121,10 @@ pub mod tests {
 
     #[test]
     fn is_equals() {
-        // let p1 = Point::new(2, 4, 5, 7);
         let p2 = Point::new(Some(-1), Some(-1), 5, 7);
-        let p3 = Point::new(Some(18), Some(-77), 5, 7);
-        // let p4 = Point::new(5, 7, 5, 7);
+        let p3 = Point::new(Some(-1), Some(-1), 5, 7);
 
-        // assert!(!p1.eq(p2));
+        assert!(p2.eq(&p3));
     }
 
     #[test]
@@ -92,6 +145,22 @@ pub mod tests {
 
         assert!(p2.add(&infinity).eq(&p2));
         assert!(infinity.add(&p2).eq(&p2));
+    }
+
+    #[test]
+    fn add_to_point() {
+        // let p2 = Point::new(Some(2), Some(5), 5, 7);
+        // let p3 = Point::new(Some(-1), Some(-1), 5, 7);
+        // let sum = Point::new(Some(3), Some(-7), 5, 7);
+
+        // assert!(p2.add(&p3).eq(&sum));
+
+        let p2 = Point::new(Some(-1), Some(-1), 5, 7);
+        let p3 = Point::new(Some(-1), Some(-1), 5, 7);
+        let sum = Point::new(Some(18), Some(77), 5, 7);
+
+        println!("sum is {:?}", p2.add(&p3));
+        assert!(p2.add(&p3).eq(&sum));
     }
 
 }
