@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct FieldElement {
     num: u128, 
     prime: u128
@@ -15,11 +16,11 @@ impl FieldElement {
         format!("FieldElement_{}_{}", self.num, self.prime)
     }
 
-    pub fn is_equal(&self, other: &FieldElement) -> bool {
+    pub fn eq(&self, other: &FieldElement) -> bool {
         self.num == other.num && self.prime == other.prime
     }
 
-    pub fn is_not_equal(&self, other: &FieldElement) -> bool {
+    pub fn ne(&self, other: &FieldElement) -> bool {
         self.num != other.num || self.prime != other.prime
     }
 
@@ -64,7 +65,14 @@ impl FieldElement {
         }
     }
 
-    pub fn exp(&self, power: u32) -> FieldElement {
+    pub fn s_mul(&self, scalar: u64) -> FieldElement {
+        FieldElement {
+            num: (self.num * scalar as u128) % self.prime,
+            prime: self.prime
+        }
+    }
+
+    pub fn pow(&self, power: u32) -> FieldElement {
         let num = self.num.pow(power) % self.prime;
         FieldElement {
             num,
@@ -77,10 +85,8 @@ impl FieldElement {
             panic!("Can't divide numbers in different fields");
         }
 
-        let exp = other.exp((30) as u32);
-        println!("exp in div {}", exp.num);
-
-        // self.mul(&exp) 
+        let exp = other.pow((30) as u32);
+        
         exp
     }
 }

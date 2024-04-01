@@ -7,21 +7,11 @@ fn main() {
     // this method needs to be inside main() method
   env::set_var("RUST_BACKTRACE", "full");
 
-    let a = FieldElement::new(3, 31);
-    let b = FieldElement::new(24, 31);
-
-    let c = a.add(&b);
-    let d = a.sub(&b);
-
-    let mul = a.mul(&b);
-    let exp = a.exp(3);
-    // let div = a.div(&b);
-
-    println!("a + b {} ", c.to_string()); // finite field addition
-    println!("a - b {} ", d.to_string()); // finite field subtraction
-
-    println!("a * b {} ", mul.to_string()); // finite field multiplication
-    println!("a ^ 3 {} ", exp.to_string()); // finite field exponents
-    // println!("a / b {} ", div.to_string()); // finite field exponents
+    let a = FieldElement::new(0, 223);
+    let b = FieldElement::new(7, 223);
+    let x = FieldElement::new(192, 223);
+    let y = FieldElement::new(105, 223);
+    
+    let p1 = Point::new(Some(x), Some(y), a, b);
 
 }
