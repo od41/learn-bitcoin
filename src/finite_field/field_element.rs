@@ -20,25 +20,16 @@ impl FieldElement {
     }
 
     pub fn pow(&self, power: isize) -> Self {
-        let exp = (power % (self.prime - 1).to_isize().unwrap()).to_usize().unwrap();
-        let num = pow(self.num, exp) % self.prime;
+        let mut exp = power;
+        while exp < 0 {
+            exp += (self.prime - 1).to_isize().unwrap();
+        }
+        let num = pow(self.num, exp.to_usize().unwrap()) % self.prime;
         FieldElement {
             num,
             prime: self.prime
         }
     }
-
-    // pub fn div(&self, other: &FieldElement) -> FieldElement {
-    //     if self.prime != other.prime {
-    //         panic!("Can't divide numbers in different fields");
-    //     }
-
-    //     let exp = other.num.pow((self.prime - 2) as u32);
-    //     let num = (self.num * exp) % self.prime;
-    //     println!("exp {}, product: {}", exp, num);
-        
-    //     FieldElement { num, prime: self.prime }
-    // }
 }
 
 impl PartialEq for FieldElement {
@@ -116,9 +107,8 @@ impl Div for FieldElement {
             panic!("Can't divide numbers in different fields");
         }
 
-        let exp = other.num.pow((self.prime - 2) as u32);
+        let exp = mod_exp::mod_exp(other.num,self.prime - 2, self.prime);
         let num = (self.num * exp) % self.prime;
-        println!("exp {}, product: {}", exp, num);
         
         FieldElement { num, prime: self.prime }
     }
@@ -178,14 +168,14 @@ pub mod tests {
         debug_assert_eq!(a.pow(-15), b);
     }
 
-    // #[test]
-    // fn div_works() {
-    //     let prime = 223;
+    #[test]
+    fn div_works() {
+        let prime = 223;
         
-    //     let a = FieldElement::new(12, prime);
-    //     let b = FieldElement::new(222, prime);
-    //     let c = FieldElement::new(211, prime);
+        let a = FieldElement::new(12, prime);
+        let b = FieldElement::new(222, prime);
+        let c = FieldElement::new(211, prime);
         
-    //     assert_eq!(a / b, c);
-    // }
+        assert_eq!(a / b, c);
+    }
 }
