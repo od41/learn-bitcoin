@@ -165,22 +165,22 @@ pub mod tests {
     }
 
     #[test]
-    #[should_panic] // TODO: the test fails rn
+    // #[should_panic] // TODO: the test fails rn
     fn add_to_point() {
         let prime = 223;
-        let x1 = FieldElement::new(2, prime);
-        let y1 = FieldElement::new(5, prime);
-        let x2 = FieldElement::new(18, prime);
-        let y2 = FieldElement::new(77, prime);
-        let a = FieldElement::new(5, prime);
+        let x1 = FieldElement::new(192, prime);
+        let y1 = FieldElement::new(105, prime);
+        let x2 = FieldElement::new(17, prime);
+        let y2 = FieldElement::new(56, prime);
+        let a = FieldElement::new(0, prime);
         let b = FieldElement::new(7, prime);
 
         let p2 = Point::new(Some(x1), Some(y1), a, b);
         let p3 = Point::new(Some(x2), Some(y2), a, b);
         
         let sum = Point::new(
-            Some(FieldElement::new(56, prime)), 
-            Some(FieldElement::new(198, prime)), 
+            Some(FieldElement::new(170, prime)), 
+            Some(FieldElement::new(142, prime)), 
             a,
             b
         );
@@ -188,6 +188,35 @@ pub mod tests {
         println!("sum is {:?}", p2.add(&p3));
 
         assert!(p2.add(&p3).eq(&sum));
+    }
+
+    #[test]
+    fn test_on_curve() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let valid_points = vec![(192, 105), (17, 56), (1, 193)];
+
+        for (x_raw, y_raw) in valid_points {
+            let x = FieldElement::new(x_raw, prime);
+            let y = FieldElement::new(y_raw, prime);
+            Point::new(Some(x), Some(y), a, b);
+        } 
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_on_curve_invalid() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let invalid_points = vec![(200, 119), (42, 99)];
+
+        for (x_raw, y_raw) in invalid_points {
+            let x = FieldElement::new(x_raw, prime);
+            let y = FieldElement::new(y_raw, prime);
+            Point::new(Some(x), Some(y), a, b);
+        }
     }
 
 }
