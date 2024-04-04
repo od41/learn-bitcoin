@@ -1,14 +1,14 @@
-use std::ops::{Add, Div, Mul, Sub};
-use num::pow;
+use std::{fmt, ops::{Add, Div, Mul, Sub}};
+use num::{pow, ToPrimitive};
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct FieldElement {
-    num: u128, 
-    prime: u128
+    num: usize, 
+    prime: usize
 }
 
 impl FieldElement {
-    pub fn new(num: u128, prime: u128) -> FieldElement {
+    pub fn new(num: usize, prime: usize) -> FieldElement {
         if num >= prime {
             panic!("Num not in field range 0 to {}", prime);
         }
@@ -19,90 +19,41 @@ impl FieldElement {
         format!("FieldElement_{}_{}", self.num, self.prime)
     }
 
-    pub fn eq(&self, other: &FieldElement) -> bool {
-        self.num == other.num && self.prime == other.prime
-    }
-
-    pub fn ne(&self, other: &FieldElement) -> bool {
-        self.num != other.num || self.prime != other.prime
-    }
-
-    pub fn add(&self, other: &FieldElement) -> FieldElement {
-        if self.prime != other.prime {
-            panic!("Can't add numbers in different fields");
-        }
-
-        FieldElement {
-            num: (self.num + other.num) % self.prime,
-            prime: self.prime
-        }
-    }
-
-    pub fn sub(&self, other: &FieldElement) -> FieldElement {
-        if self.prime != other.prime {
-            panic!("Can't subtract numbers in different fields");
-        }
-
-        let num;
-        if self.num < other.num {
-            let temp_num = (other.num - self.num) % self.prime;
-            num = self.prime - temp_num;
-        } else {
-            num = (self.num - other.num) % self.prime;
-        }
-
+    pub fn pow(&self, power: isize) -> Self {
+        let exp = (power % (self.prime - 1).to_isize().unwrap()).to_usize().unwrap();
+        let num = pow(self.num, exp) % self.prime;
         FieldElement {
             num,
             prime: self.prime
         }
     }
 
-    pub fn mul(&self, other: &FieldElement) -> FieldElement {
-        if self.prime != other.prime {
-            panic!("Can't multiply numbers in different fields");
-        }
+    // pub fn div(&self, other: &FieldElement) -> FieldElement {
+    //     if self.prime != other.prime {
+    //         panic!("Can't divide numbers in different fields");
+    //     }
 
-        FieldElement {
-            num: (self.num * other.num) % self.prime,
-            prime: self.prime
-        }
-    }
-
-    pub fn s_mul(&self, scalar: u64) -> FieldElement {
-        FieldElement {
-            num: (self.num * scalar as u128) % self.prime,
-            prime: self.prime
-        }
-    }
-
-    pub fn pow(&self, power: usize) -> FieldElement {
-        let num = pow(self.num, power) % self.prime;
-        FieldElement {
-            num,
-            prime: self.prime
-        }
-    }
-
-    pub fn div(&self, other: &FieldElement) -> FieldElement {
-        if self.prime != other.prime {
-            panic!("Can't divide numbers in different fields");
-        }
-
-        // # use Fermat's little theorem:
-        // # self.num**(p-1) % p == 1
-        // # this means:
-        // # 1/n == pow(n, p-2, p)
-        // # we return an element of the same class
-        // num = self.num * pow(other.num, self.prime - 2, self.prime) % self.prime
-        // return self.__class__(num, self.prime
-
-        let exp = other.num.pow((self.prime - 2) as u32);
-        let num = (self.num * exp) % self.prime;
-        println!("exp {}, product: {}", exp, num);
+    //     let exp = other.num.pow((self.prime - 2) as u32);
+    //     let num = (self.num * exp) % self.prime;
+    //     println!("exp {}, product: {}", exp, num);
         
-        FieldElement { num, prime: self.prime }
+    //     FieldElement { num, prime: self.prime }
+    // }
+}
+
+impl PartialEq for FieldElement {
+    fn eq(&self, other: &Self) -> bool {
+        return self.num == other.num && self.prime == other.prime;
     }
 }
+impl Eq for FieldElement {}
+
+impl fmt::Display for FieldElement {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "FieldElement_{}({}))", self.prime, self.num)
+    }
+}
+
 
 impl Add for FieldElement {
     type Output = Self;
@@ -221,6 +172,10 @@ pub mod tests {
         let a = FieldElement::new(5, 31);
         let b = FieldElement::new(18, 31);
         assert_eq!(a.pow(5) * b, FieldElement::new(16, 31));
+
+        let a = FieldElement::new(7, 13);
+        let b = FieldElement::new(8, 13);
+        debug_assert_eq!(a.pow(-15), b);
     }
 
     // #[test]

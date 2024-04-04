@@ -15,27 +15,17 @@ impl Point {
         }
         let x = x.unwrap();
         let y = y.unwrap();
-        if y.pow(2) != x.pow(3).add(&(a.mul(&x)).add(&b)) {
+        if y.pow(2) != x.pow(3) + (a * x) + b {
             panic!("Value ({:?} {:?}) is not on the curve", x, y);
         }
         Point {a, b, x: Some(x), y: Some(y)}
     }
 
     pub fn eq(&self, other: &Point) -> bool {
-        // let x1 = self.x.unwrap();
-        // let y1 = self.y.unwrap();
-        // let x2 = other.x.unwrap();
-        // let y2 = other.y.unwrap();
-
         self.x == other.x && self.y == other.y && self.a == other.a && self.b == other.b
     }
 
     pub fn ne(&self, other: &Point) -> bool {
-        // let x1 = self.x.unwrap();
-        // let y1 = self.y.unwrap();
-        // let x2 = other.x.unwrap();
-        // let y2 = other.y.unwrap();
-        // TODO: redo the equality checks because they're on Field elements not integers
         self.x != other.x || self.y != other.y || self.a != other.a || self.b != other.b
     }
 
@@ -74,10 +64,10 @@ impl Point {
             let x2 = other.x.unwrap();
             let y2 = other.y.unwrap();
 
-            let slope = (y2.sub(&y1)).div(&x2.sub(&x1));
+            let slope = (y2 - y1) / (x2 - x1);
 
-            let x3 = slope.pow(2).sub(&x1.sub(&x2));
-            let y3 = (slope.mul(&x1.sub(&x3))).sub(&y1);
+            let x3 = slope.pow(2) - x1 - x2;
+            let y3 = (slope * x1) - x3 - y1;
 
             Point{
                 x: Some(x3),
@@ -91,15 +81,24 @@ impl Point {
             let x = self.x.unwrap();
             let y = self.y.unwrap();
 
-            let slope = ((x.s_mul(3).pow(2)).add(&self.a)).div(&y.s_mul(2));
+            // TODO
 
-            let x3 = slope.pow(2).sub(&x.s_mul(2));
-            let y3 = (slope.mul(&x.sub(&x3))).sub(&y);
+            // let slope = ((3 * x).pow(2)) + self.a / (2 * y);
 
+            // let x3 = slope.pow(2) - (2 * x);
+            // let y3 = (slope * (x - x3) - y);
+
+
+            // Point{
+            //     x: Some(x3),
+            //     y: Some(y3),
+            //     a: self.a,
+            //     b: self.b
+            // }
 
             Point{
-                x: Some(x3),
-                y: Some(y3),
+                x: self.x,
+                y: self.y,
                 a: self.a,
                 b: self.b
             }
