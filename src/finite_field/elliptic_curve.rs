@@ -1,6 +1,6 @@
 #![allow(unused)]
 use super::field_element::FieldElement;
-use std::{fmt, ops::{Add}};
+use std::{fmt, ops::{Add, Mul}};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
@@ -111,6 +111,34 @@ impl Add for Point {
                 b: self.b
             }
         }
+    }
+}
+
+impl Mul<usize> for Point {
+    type Output = Self;
+
+    fn mul(self, coefficient: usize) -> Self {
+        let mut product = Point {x: None, y: None, a: self.a, b: self.b};
+        
+        for _ in 0..coefficient {
+            product = product + self;
+        }
+        
+        product
+    }
+}
+
+impl Mul<Point> for usize {
+    type Output = Point;
+
+    fn mul(self, other: Point) -> Self::Output {
+        let mut product = Point {x: None, y: None, a: other.a, b: other.b};
+        
+        for _ in 0..self {
+            product = product + other;
+        }
+        
+        product
     }
 }
 
@@ -263,4 +291,18 @@ pub mod tests {
         assert!(p2 + p3 == sum);
     }
 
+
+    #[test]
+    fn scalar_mul_works() {
+        let prime = 223;
+        let x = FieldElement::new(15, prime);
+        let y = FieldElement::new(86, prime);
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+
+        let p = Point::new(Some(x), Some(y), a, b);
+        let infinity = Point::new(None, None, a, b);
+        let product = 7 * p;
+        assert!(product == infinity);
+    }
 }
