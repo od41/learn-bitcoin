@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::{fmt, ops::{Add, Div, Mul, Sub}};
 use num::{pow, ToPrimitive};
 
@@ -13,10 +15,6 @@ impl FieldElement {
             panic!("Num not in field range 0 to {}", prime);
         }
         FieldElement {num, prime}
-    }
-
-    pub fn to_string(self) -> String {
-        format!("FieldElement_{}_{}", self.num, self.prime)
     }
 
     pub fn pow(&self, power: isize) -> Self {
@@ -49,12 +47,12 @@ impl fmt::Display for FieldElement {
 impl Add for FieldElement {
     type Output = Self;
 
-    fn add(self, other: FieldElement) -> FieldElement {
+    fn add(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("Can't add numbers in different fields");
         }
 
-        FieldElement {
+        Self {
             num: (self.num + other.num) % self.prime,
             prime: self.prime
         }
@@ -64,7 +62,7 @@ impl Add for FieldElement {
 impl Sub for FieldElement {
     type Output = Self;
 
-    fn sub(self, other: FieldElement) -> FieldElement {
+    fn sub(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("Can't subtract numbers in different fields");
         }
@@ -77,7 +75,7 @@ impl Sub for FieldElement {
             num = (self.num - other.num) % self.prime;
         }
 
-        FieldElement {
+        Self {
             num,
             prime: self.prime
         }
@@ -87,14 +85,36 @@ impl Sub for FieldElement {
 impl Mul for FieldElement {
     type Output = Self;
 
-    fn mul(self, other: FieldElement) -> FieldElement {
+    fn mul(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("Can't multiply numbers in different fields");
         }
 
-        FieldElement {
+        Self {
             num: (self.num * other.num) % self.prime,
             prime: self.prime
+        }
+    }
+}
+
+impl Mul<usize> for FieldElement {
+    type Output = Self;
+
+    fn mul(self, other: usize) -> Self {
+        Self {
+            num: (self.num * other) % self.prime,
+            prime: self.prime
+        }
+    }
+}
+
+impl Mul<FieldElement> for usize {
+    type Output = FieldElement;
+
+    fn mul(self, other: FieldElement) -> Self::Output {
+        Self::Output {
+            num: (self * other.num) % other.prime,
+            prime: other.prime
         }
     }
 }
@@ -102,7 +122,7 @@ impl Mul for FieldElement {
 impl Div for FieldElement {
     type Output = Self;
 
-    fn div(self, other: FieldElement) -> FieldElement {
+    fn div(self, other: Self) -> Self {
         if self.prime != other.prime {
             panic!("Can't divide numbers in different fields");
         }
@@ -110,7 +130,7 @@ impl Div for FieldElement {
         let exp = mod_exp::mod_exp(other.num,self.prime - 2, self.prime);
         let num = (self.num * exp) % self.prime;
         
-        FieldElement { num, prime: self.prime }
+        Self { num, prime: self.prime }
     }
 }
 

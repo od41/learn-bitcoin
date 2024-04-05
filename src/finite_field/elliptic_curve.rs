@@ -1,4 +1,6 @@
+#![allow(unused)]
 use super::field_element::FieldElement;
+use std::{fmt, ops::{Add}};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Point {
@@ -19,17 +21,24 @@ impl Point {
             panic!("Value ({:?} {:?}) is not on the curve", x, y);
         }
         Point {a, b, x: Some(x), y: Some(y)}
-    }
+    }    
+}
 
-    pub fn eq(&self, other: &Point) -> bool {
+impl PartialEq for Point {
+    fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y && self.a == other.a && self.b == other.b
     }
 
-    pub fn ne(&self, other: &Point) -> bool {
+    fn ne(&self, other: &Point) -> bool {
         self.x != other.x || self.y != other.y || self.a != other.a || self.b != other.b
     }
+}
+impl Eq for Point {}
 
-    pub fn add(&self, other: &Point) -> Point {
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
         if self.a != other.a || self.b != other.b {
             panic!("Points {:?}, {:?} are not on the same curve", self, other);
         }
@@ -51,7 +60,7 @@ impl Point {
                 b: self.b
             }
         } else if self.x == other.x && self.y !=  other.y {
-            // returns a point at infinity... right?
+            // returns a point at infinity...it's a vertical line
             Point{
                 x: None,
                 y: None,
@@ -59,6 +68,7 @@ impl Point {
                 b: self.b
             }
         } else if self.x != other.x {
+            // x1 != x2
             let x1 = self.x.unwrap();
             let y1 = self.y.unwrap();
             let x2 = other.x.unwrap();
@@ -67,7 +77,7 @@ impl Point {
             let slope = (y2 - y1) / (x2 - x1);
 
             let x3 = slope.pow(2) - x1 - x2;
-            let y3 = (slope * x1) - x3 - y1;
+            let y3 = (slope * (x1 - x3)) - y1;
 
             Point{
                 x: Some(x3),
@@ -81,24 +91,15 @@ impl Point {
             let x = self.x.unwrap();
             let y = self.y.unwrap();
 
-            // TODO
+            let slope = ((3 * x.pow(2)) + self.a) / (2 * y);
 
-            // let slope = ((3 * x).pow(2)) + self.a / (2 * y);
+            let x3 = slope.pow(2) - (2 * x);
+            let y3 = (slope * (x - x3)) - y;
 
-            // let x3 = slope.pow(2) - (2 * x);
-            // let y3 = (slope * (x - x3) - y);
-
-
-            // Point{
-            //     x: Some(x3),
-            //     y: Some(y3),
-            //     a: self.a,
-            //     b: self.b
-            // }
 
             Point{
-                x: self.x,
-                y: self.y,
+                x: Some(x3),
+                y: Some(y3),
                 a: self.a,
                 b: self.b
             }
@@ -111,12 +112,41 @@ impl Point {
             }
         }
     }
-    
 }
+
 
 #[cfg(test)]
 pub mod tests {
     use super::*;
+
+    #[test]
+    fn is_valid_curves() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let valid_points = vec![(192, 105), (17, 56), (1, 193)];
+
+        for (x_raw, y_raw) in valid_points {
+            let x = FieldElement::new(x_raw, prime);
+            let y = FieldElement::new(y_raw, prime);
+            Point::new(Some(x), Some(y), a, b);
+        } 
+    }
+
+    #[test]
+    #[should_panic]
+    fn is_invalid_curves() {
+        let prime = 223;
+        let a = FieldElement::new(0, prime);
+        let b = FieldElement::new(7, prime);
+        let invalid_points = vec![(200, 119), (42, 99)];
+
+        for (x_raw, y_raw) in invalid_points {
+            let x = FieldElement::new(x_raw, prime);
+            let y = FieldElement::new(y_raw, prime);
+            Point::new(Some(x), Some(y), a, b);
+        }
+    }
 
     #[test]
     fn is_equals() {
@@ -129,7 +159,7 @@ pub mod tests {
         let p2 = Point::new(Some(x), Some(y), a, b);
         let p3 = Point::new(Some(x), Some(y), a, b);
 
-        assert!(p2.eq(&p3));
+        assert!(p2 == p3);
     }
 
     #[test]
@@ -145,11 +175,11 @@ pub mod tests {
         let p2 = Point::new(Some(x1), Some(y1), a, b);
         let p3 = Point::new(Some(x2), Some(y2), a, b);
 
-        assert!(p2.ne(&p3));
+        assert!(p2 != p3);
     }
 
     #[test]
-    fn add_to_identity() {
+    fn add_to_identity_point() {
         let prime = 223;
         let x = FieldElement::new(192, prime);
         let y = FieldElement::new(105, prime);
@@ -159,18 +189,19 @@ pub mod tests {
         let p2 = Point::new(Some(x), Some(y), a, b);
         let infinity = Point::new(None, None, a, b);
 
-        assert!(p2.add(&infinity).eq(&p2));
-        assert!(infinity.add(&p2).eq(&p2));
+        assert!(p2 + infinity == p2);
+        assert!(infinity + p2 == p2);
     }
-
+    
     #[test]
-    // #[should_panic] // TODO: the test fails rn
-    fn add_to_point() {
+    #[should_panic]
+    fn add_to_same_x_point() {
+        // x1 == x2 but y1 != y2
         let prime = 223;
         let x1 = FieldElement::new(192, prime);
         let y1 = FieldElement::new(105, prime);
-        let x2 = FieldElement::new(17, prime);
-        let y2 = FieldElement::new(56, prime);
+        let x2 = FieldElement::new(192, prime);
+        let y2 = FieldElement::new(0, prime);
         let a = FieldElement::new(0, prime);
         let b = FieldElement::new(7, prime);
 
@@ -178,44 +209,58 @@ pub mod tests {
         let p3 = Point::new(Some(x2), Some(y2), a, b);
         
         let sum = Point::new(
-            Some(FieldElement::new(170, prime)), 
-            Some(FieldElement::new(142, prime)), 
+            Some(FieldElement::new(160, prime)), 
+            Some(FieldElement::new(101, prime)), 
             a,
             b
         );
 
-        println!("sum is {:?}", p2.add(&p3));
-
-        assert!(p2.add(&p3).eq(&sum));
+        assert!(p2 + p3 == sum);
     }
 
     #[test]
-    fn test_on_curve() {
+    fn add_to_tangential_point() {
+        // the point is at a tangent and P1 == P2
         let prime = 223;
+        let x1 = FieldElement::new(192, prime);
+        let y1 = FieldElement::new(105, prime);
         let a = FieldElement::new(0, prime);
         let b = FieldElement::new(7, prime);
-        let valid_points = vec![(192, 105), (17, 56), (1, 193)];
 
-        for (x_raw, y_raw) in valid_points {
-            let x = FieldElement::new(x_raw, prime);
-            let y = FieldElement::new(y_raw, prime);
-            Point::new(Some(x), Some(y), a, b);
-        } 
+        let p1 = Point::new(Some(x1), Some(y1), a, b);
+        
+        let sum = Point::new(
+            Some(FieldElement::new(49, prime)), 
+            Some(FieldElement::new(71, prime)), 
+            a,
+            b
+        );
+
+        assert!(p1 + p1 == sum);
     }
 
     #[test]
-    #[should_panic]
-    fn test_on_curve_invalid() {
+    fn add_to_different_points() {
+        // x1 != x2 and y1 != y2
         let prime = 223;
+        let x1 = FieldElement::new(192, prime);
+        let y1 = FieldElement::new(105, prime);
+        let x2 = FieldElement::new(206, prime);
+        let y2 = FieldElement::new(0, prime);
         let a = FieldElement::new(0, prime);
         let b = FieldElement::new(7, prime);
-        let invalid_points = vec![(200, 119), (42, 99)];
 
-        for (x_raw, y_raw) in invalid_points {
-            let x = FieldElement::new(x_raw, prime);
-            let y = FieldElement::new(y_raw, prime);
-            Point::new(Some(x), Some(y), a, b);
-        }
+        let p2 = Point::new(Some(x1), Some(y1), a, b);
+        let p3 = Point::new(Some(x2), Some(y2), a, b);
+        
+        let sum = Point::new(
+            Some(FieldElement::new(160, prime)), 
+            Some(FieldElement::new(101, prime)), 
+            a,
+            b
+        );
+
+        assert!(p2 + p3 == sum);
     }
 
 }
