@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use std::{fmt, ops::{Add, Div, Mul, Sub}};
+use std::{fmt, ops::{Add, Deref, Div, Mul, Sub}};
 use num::{pow, ToPrimitive};
 
 #[derive(Debug, Clone, Copy)]
@@ -134,6 +134,39 @@ impl Div for FieldElement {
     }
 }
 
+#[derive(Debug)]
+pub struct S256Field {
+    num: usize,
+}
+
+impl S256Field {
+    pub fn new(num: usize) -> Self {
+        // Use the specific prime value for S256Field
+        Self { num }
+    }
+}
+
+// Derive traits from FieldElement to S256Field
+impl From<S256Field> for FieldElement {
+    fn from(s256: S256Field) -> Self {
+        let prime: usize = pow(2, 256) - pow(2, 32) - 977;
+        FieldElement::new(s256.num, prime) // Use the S256 prime value
+    }
+}
+
+// For easier conversion from S256Field to FieldElement
+// impl Deref for S256Field {
+//     type Target = FieldElement;
+
+//     fn deref(&self) -> &Self::Target {
+//         // Convert S256Field to FieldElement when needed
+//         // by using the specific prime value
+//         let temp = Self::Target{num: self.num, prime: 256};
+//         temp.clone()
+//     }
+// }
+
+
 #[cfg(test)]
 pub mod tests {
     use super::*;
@@ -197,5 +230,13 @@ pub mod tests {
         let c = FieldElement::new(211, prime);
         
         assert_eq!(a / b, c);
+    }
+
+    #[test]
+    fn secp_field_element_works() {        
+        let point = S256Field::new(42);
+        let p2 = FieldElement::new(10, 256);
+        let sum = p2 + point;
+        println!("point is: {:?}", point);
     }
 }

@@ -59,6 +59,15 @@ impl Add for Point {
                 a: self.a,
                 b: self.b
             }
+        } else if self == other && (self.y.unwrap() == 0 * self.x.unwrap() ){
+            // if the line is a tangent to the curve and y = 0
+            // return the identity (i.e)
+            Point{
+                x: None,
+                y: None,
+                a: self.a,
+                b: self.b
+            }
         } else if self.x == other.x && self.y !=  other.y {
             // returns a point at infinity...it's a vertical line
             Point{
@@ -116,12 +125,19 @@ impl Add for Point {
 
 impl Mul<usize> for Point {
     type Output = Self;
+    // Point * usize
 
     fn mul(self, coefficient: usize) -> Self {
         let mut product = Point {x: None, y: None, a: self.a, b: self.b};
+        let mut coef = coefficient.clone();
+        let mut current = self.clone();
         
-        for _ in 0..coefficient {
-            product = product + self;
+        while coef > 0 {
+            if coef & 1 == 1 {
+                product = product + current;
+            }
+            current = current + current;
+            coef >>= 1;
         }
         
         product
@@ -130,12 +146,19 @@ impl Mul<usize> for Point {
 
 impl Mul<Point> for usize {
     type Output = Point;
+    // usize * Point
 
     fn mul(self, other: Point) -> Self::Output {
         let mut product = Point {x: None, y: None, a: other.a, b: other.b};
+        let mut coef = self.clone();
+        let mut current = other.clone();
         
-        for _ in 0..self {
-            product = product + other;
+        while coef > 0 {
+            if coef & 1 == 1 {
+                product = product + current;
+            }
+            current = current + current;
+            coef >>= 1;
         }
         
         product
@@ -302,7 +325,7 @@ pub mod tests {
 
         let p = Point::new(Some(x), Some(y), a, b);
         let infinity = Point::new(None, None, a, b);
-        let product = 7 * p;
+        let product = 7 * p; // order is 7
         assert!(product == infinity);
     }
 }
