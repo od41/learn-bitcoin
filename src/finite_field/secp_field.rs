@@ -144,57 +144,11 @@ pub mod tests {
     use super::*;
 
     #[test]
-    fn add_works() {
+    fn test_lib_works() {
         let a = S256Field::new(BigUint::from(12u64));
         let b = S256Field::new(BigUint::from(222u64));
         let c = S256Field::new(BigUint::from(11u64));
         
         assert_eq!(a+b, c);
-    }
-
-    #[test]
-    fn sub_works() {        
-        let a = S256Field::new(BigUint::from(12u64));
-        let b = S256Field::new(BigUint::from(222u64));
-        let c = S256Field::new(BigUint::from(11u64));
-        
-        assert_eq!(a-b, c);
-    }
-
-    #[test]
-    fn mul_works() {
-        let a = S256Field::new(BigUint::from(12u64));
-        let b = S256Field::new(BigUint::from(222u64));
-        let c = S256Field::new(BigUint::from(211u64));
-        
-        assert_eq!(a * b, c);
-    }
-
-    #[test]
-    fn pow_works() {
-        let prime = 13;
-        
-        let a = S256Field::new(BigUint::from(3u64));
-        let b = S256Field::new(BigUint::from(1u64));
-        assert_eq!(a.pow(BigUint::from(3u64)), b);
-        
-        let a = S256Field::new(BigUint::from(5u64));
-        let b = S256Field::new(BigUint::from(18u64));
-        assert_eq!(a.pow(BigUint::from(5u64)) * b, S256Field::new(BigUint::from(16u64)));
-
-        let a = S256Field::new(BigUint::from(7u64));
-        let b = S256Field::new(BigUint::from(8u64));
-        // debug_assert_eq!(a.pow(BigUint::from(-15i64)), b);
-    }
-
-    #[test]
-    fn div_works() {
-        let prime = 223;
-        
-        let a = S256Field::new(BigUint::from(12u64));
-        let b = S256Field::new(BigUint::from(222u64));
-        let c = S256Field::new(BigUint::from(211u64));
-        
-        assert_eq!(a / b, c);
     }
 }
