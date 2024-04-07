@@ -19,6 +19,10 @@ impl S256Field {
         Self {num, prime: secp256k1_prime}
     }
 
+    pub fn get_num(&self) -> BigUint {
+        self.num.clone()
+    }
+
     pub fn pow(&self, power: BigUint) -> Self {
         let exp = power % (&self.prime - BigUint::from_u64(1u64).unwrap());
         let num = Self::mod_pow(self.num.clone(), exp.into(), &self.prime);
@@ -45,6 +49,16 @@ impl S256Field {
             base = base.clone() * base % modulus
         }
         result
+    }
+
+    // return biguint zero
+    pub fn zero() -> BigUint {
+        BigUint::from(0u64)
+    }
+
+    // return biguint one
+    pub fn one() -> BigUint {
+        BigUint::from(1u64)
     }
 
 }
@@ -107,6 +121,7 @@ impl Mul for S256Field {
     }
 }
 
+// usize * S256Field
 impl Mul<usize> for S256Field {
     type Output = Self;
 
@@ -116,6 +131,24 @@ impl Mul<usize> for S256Field {
 }
 
 impl Mul<S256Field> for usize {
+    type Output = S256Field;
+
+    fn mul(self, other: S256Field) -> Self::Output {
+        Self::Output::new((self * other.num) % other.prime)
+    }
+}
+
+// BigUint * S256Field
+impl Mul<BigUint> for S256Field {
+    type Output = Self;
+
+    fn mul(self, other: BigUint) -> Self {
+        Self::new((self.num * other) % self.prime)
+    }
+}
+
+// S256Field * BigUint
+impl Mul<S256Field> for BigUint {
     type Output = S256Field;
 
     fn mul(self, other: S256Field) -> Self::Output {
@@ -141,14 +174,34 @@ impl Div for S256Field {
 
 #[cfg(test)]
 pub mod tests {
+    use num::Num;
+
+    use crate::finite_field::{elliptic_curve::Point, secp_ec::S256Point};
+
     use super::*;
 
+    #[allow(non_snake_case)]
     #[test]
     fn test_lib_works() {
-        let a = S256Field::new(BigUint::from(12u64));
-        let b = S256Field::new(BigUint::from(222u64));
-        let c = S256Field::new(BigUint::from(11u64));
+        let gx =  BigUint::from_str_radix(
+            "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
+            16,
+        ).unwrap();
+        let gy =  BigUint::from_str_radix(
+            "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8",
+            16,
+        ).unwrap();
+
+        let n =  BigUint::from_str_radix(
+            "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141",
+            16,
+        ).unwrap();
         
-        assert_eq!(a+b, c);
+        let x = S256Field::new(gx);
+        let y = S256Field::new(gy);
+
+        let G = S256Point::new(Some(x), Some(y));
+
+        assert_eq!(G*n, S256Point::infinity_point());
     }
 }
